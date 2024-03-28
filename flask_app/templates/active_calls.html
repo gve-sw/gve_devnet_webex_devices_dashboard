@@ -1,0 +1,220 @@
+{% extends "masterPage.html" %}
+
+{% block content %}
+
+<div class="container-fluid base-margin-top">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoints - Active Calls</h5>
+        </div>
+        <div class="col-md-2">
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div id="excel-export-btn" class="col-md-8 text-right" style="cursor: pointer;">
+                    <span class="text-size-14 text-success text-center">Excel Export</span>
+                    <span class="icon-file-excel-o text-success icon-size-24"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="panel panel--loose panel--raised">
+            <div class="responsive-table">
+                <table class="table table--lined table--wrapped table--striped" id="active_calls_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">Endpoint</th>
+                        <th class="hidden-md-down">Region</th>
+                        <th class="hidden-md-down">Site</th>
+                        <th class="hidden-md-down">ID</th>
+                        <th class="hidden-md-down">Display Name</th>
+                        <th class="hidden-md-down">Remote Number</th>
+                        <th class="hidden-md-down">Type</th>
+                        <th class="hidden-md-down">Dir</th>
+                        <th class="hidden-md-down">Start Time</th>
+                        <th class="hidden-md-down">Dur</th>
+                        <th class="hidden-md-down">Status</th>
+                        <th class="hidden-md-down">A MOS</th>
+                        <th class="hidden-md-down">V MOS</th>
+                        <th class="hidden-md-down">Device Type</th>
+                        <th class="hidden-md-down">Protocol</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for call in display_table %}
+                    <tr>
+                        <td class="hidden-md-down">{{ call.endpoint }}</td>
+                        <td class="hidden-md-down">{{ call.region }}</td>
+                        <td class="hidden-md-down">{{ call.site }}</td>
+                        <td class="hidden-md-down">{{ call.id }}</td>
+                        <td class="hidden-md-down">{{ call.displayName }}</td>
+                        <td class="hidden-md-down">{{ call.remoteNumber }}</td>
+                        <td class="hidden-md-down">{{ call.type }}</td>
+                        <td class="hidden-md-down">{{ call.direction }}</td>
+                        <td class="hidden-md-down">{{ call.startTime }}</td>
+                        <td class="hidden-md-down">{{ call.duration }}</td>
+                        <td class="hidden-md-down">{{ call.status }}</td>
+                        <td class="hidden-md-down">{{ call.a_mos }}</td>
+                        <td class="hidden-md-down">{{ call.v_mos }}</td>
+                        <td class="hidden-md-down">{{ call.deviceType }}</td>
+                        <td class="hidden-md-down">{{ call.protocol }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        var table = $('#active_calls_table').DataTable({
+            responsive: true, // Enable responsive behavior\
+            columnDefs: [
+                {targets: 0, width: "10%"},
+                {   targets: [5],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        // Directly applying the styles to the cell
+                        $(td).css({
+                            'max-width': '125px', // Adjust the max-width as needed
+                            'white-space': 'nowrap',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'cursor': 'pointer'
+                        });
+                        $(td).attr('title', cellData);
+                    }
+                },
+                {
+                    targets: [10],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData === "Connected") {
+                            $(td).css('background-color', 'lightgreen');
+                        } else {
+                            $(td).css('background-color', 'lightcoral');
+                        }
+                        $(td).text(cellData);
+                    }
+                },
+                {
+                    targets: [11, 12],
+                    width: '5%',
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData === 'N/A') {
+                            // If the value is 'N/A', just set the text and don't change the background color
+                            $(td).text(cellData)
+                        } else {
+                            // Proceed with the original logic for non-'N/A' values
+                            if (cellData >= 4.5) {
+                                $(td).css('background-color', 'lightgreen');
+                            } else if (cellData >= 3.5) {
+                                $(td).css('background-color', 'lightyellow');
+                            } else if (cellData >= 2.5) {
+                                $(td).css('background-color', 'sandybrown');
+                            } else {
+                                $(td).css('background-color', 'lightcoral');
+                            }
+                            // Ensure the value is a number before formatting, this avoids errors with 'N/A'
+                            if (!isNaN(parseFloat(cellData))) {
+                                $(td).text(parseFloat(cellData).toFixed(2));
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+
+        // Initially disable the export button
+        $('#excel-export-btn').addClass('disabled');
+
+        // Check if DataTable has any data
+        if (table.rows().count() !== 0) {
+            // Enable the export button
+            $('#excel-export-btn').removeClass('disabled');
+        }
+    })
+
+    $('#excel-export-btn').on('click', function () {
+        // Gather data from active calls
+        var data = [];
+        $('#active_calls_table').DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
+            let endpoint = this.data()[0];
+            let region = this.data()[1];
+            let site = this.data()[2];
+            let id = this.data()[3];
+            let display_name = this.data()[4];
+            let remote_number = this.data()[5];
+            let type = this.data()[6];
+            let direction = this.data()[7];
+            let start_time = this.data()[8];
+            let duration = this.data()[9];
+            let status = this.data()[10];
+            let a_moss = this.data()[11];
+            let v_moss = this.data()[12];
+            let device_type = this.data()[13];
+            let protocol = this.data()[14];
+
+            data.push({
+                endpoint: endpoint,
+                region: region,
+                site: site,
+                id: id,
+                display_name: display_name,
+                remote_number: remote_number,
+                type: type,
+                direction: direction,
+                start_time: start_time,
+                duration: duration,
+                status: status,
+                a_moss_min: a_moss,
+                v_moss_min: v_moss,
+                device_type: device_type,
+                protocol: protocol
+            });
+        });
+
+        // Send data to the Flask route using AJAX
+        $.ajax({
+            url: '/download/excel',
+            type: 'POST',
+            data: {
+                download_type: "active",
+                data: JSON.stringify(data)
+            },
+            xhrFields: {
+                responseType: 'blob' // Ensure response type is treated as binary data
+            },
+            success: function (response, status, xhr) {
+                // Extract filename from Content-Disposition header
+                var filename = "";
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create a temporary anchor element to trigger the download
+                var anchor = document.createElement('a');
+                var url = window.URL.createObjectURL(response);
+                anchor.href = url;
+                anchor.download = filename || 'active_calls.xlsx'; // Use extracted filename or default name
+                document.body.appendChild(anchor);
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(anchor);
+            },
+            error: function (response) {
+                console.log('Unable to download Active Calls Excel Document, got the following response:')
+                console.log(response)
+            }
+        });
+    })
+</script>
+
+{%  endblock %}

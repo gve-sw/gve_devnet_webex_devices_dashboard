@@ -1,0 +1,334 @@
+{% extends "masterPage.html" %}
+
+{% block content %}
+<div class="container-fluid base-margin-top">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoints - Call Detailed Report</h5>
+        </div>
+        <div class="col-md-2">
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div id="excel-export-btn" class="col-md-8 text-right disabled" style="cursor: pointer;">
+                    <span class="text-size-14 text-success text-center">Excel Export</span>
+                    <span class="icon-file-excel-o text-success icon-size-24"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-5">
+            <div class="panel panel--raised">
+                <div class="row base-margin-top">
+                    <div class="col-md-5 text-center">
+                        <div class="select base-margin-bottom">
+                            <span>Endpoints:</span>
+                            <select id="endpoint-select" name="endpoint" onfocus="showOriginalText('Start Demo')"
+                                    style="width: 150px">
+                                <option value="all" selected>All Endpoints</option>
+                                {% for endpoint in endpoint_selection %}
+                                <option value="{{ endpoint.deviceId }}">{{ endpoint.displayName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-5 text-center">
+                        <div class="select base-margin-bottom">
+                            <span>Time Period:</span>
+                            <select id="period-select" name="period" onfocus="showOriginalText('Start Demo')">
+                                <option value="1" selected>Last 60 Minutes</option>
+                                <option value="3">Last 3 Hours</option>
+                                <option value="6">Last 6 Hours</option>
+                                <option value="24">Last 24 Hours</option>
+                                <option value="720">Last 30 Days</option>
+                                <option value="1440">Last 60 Days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-1 text-left">
+                        <div id="query-button" style="cursor: pointer; color: #00bceb">
+                            <span>Query</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6"></div>
+    </div>
+    <div class="section">
+        <div class="panel panel--loose panel--raised">
+            <div class="responsive-table">
+                <table class="table table--lined table--wrapped table--striped" id="historic_calls_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">Endpoint</th>
+                        <th class="hidden-md-down">Region</th>
+                        <th class="hidden-md-down">Site</th>
+                        <th class="hidden-md-down">IP Addr</th>
+                        <th class="hidden-md-down">Display Name</th>
+                        <th class="hidden-md-down">Callback Number</th>
+                        <th class="hidden-md-down">Remote Number</th>
+                        <th class="hidden-md-down">Start Time</th>
+                        <th class="hidden-md-down">End Time</th>
+                        <th class="hidden-md-down">Dur</th>
+                        <th class="hidden-md-down">Disc Type</th>
+                        <th class="hidden-md-down">A MOS Min</th>
+                        <th class="hidden-md-down">V MOS Min</th>
+                        <th class="hidden-md-down">A Loss Max</th>
+                        <th class="hidden-md-down">V Loss Max</th>
+                        <th class="hidden-md-down">A Jit Max</th>
+                        <th class="hidden-md-down">V Jit Max</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for call in display_table %}
+                    <tr>
+                        <td class="hidden-md-down">{{ call.endpoint }}</td>
+                        <td class="hidden-md-down">{{ call.region }}</td>
+                        <td class="hidden-md-down">{{ call.site }}</td>
+                        <td class="hidden-md-down">{{ call.ipAddr }}</td>
+                        <td class="hidden-md-down">{{ call.displayName }}</td>
+                        <td class="hidden-md-down">{{ call.callbackNumber }}</td>
+                        <td class="hidden-md-down">{{ call.remoteNumber }}</td>
+                        <td class="hidden-md-down">{{ call.startTime }}</td>
+                        <td class="hidden-md-down">{{ call.endTime }}</td>
+                        <td class="hidden-md-down">{{ call.duration }}</td>
+                        <td class="hidden-md-down">{{ call.disconnect_reason }}</td>
+                        <td class="hidden-md-down">{{ call.a_moss }}</td>
+                        <td class="hidden-md-down">{{ call.v_moss }}</td>
+                        <td class="hidden-md-down">{{ call.a_pkt_loss_max }}</td>
+                        <td class="hidden-md-down">{{ call.v_pkt_loss_max }}</td>
+                        <td class="hidden-md-down">{{ call.a_jit_max }}</td>
+                        <td class="hidden-md-down">{{ call.v_jit_max }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#historic_calls_table').DataTable({
+            responsive: true, // Enable responsive behavior
+            columnDefs: [
+                {targets: 0, width: '10%'},
+                {   targets: [5,6,10],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        // Directly applying the styles to the cell
+                        $(td).css({
+                            'max-width': '125px', // Adjust the max-width as needed
+                            'white-space': 'nowrap',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'cursor': 'pointer'
+                        });
+                        $(td).attr('title', cellData);
+                    }
+                },
+                {targets: [7,8,9], width: '8%'},
+                {
+                    width: '5%',
+                    targets: [11, 12],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData >= 4.5) {
+                            $(td).css('background-color', 'lightgreen');
+                        } else if (cellData >= 3.5) {
+                            $(td).css('background-color', 'lightyellow');
+                        } else if (cellData >= 2.5) {
+                            $(td).css('background-color', 'sandybrown');
+                        } else {
+                            $(td).css('background-color', 'lightcoral');
+                        }
+                        $(td).text(parseFloat(cellData).toFixed(2));
+                    }
+                },
+                {
+                    width: '5%',
+                    targets: [13, 14],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData <= 2) {
+                            $(td).css('background-color', 'lightgreen');
+                        } else if (cellData > 2 && cellData <= 5) {
+                            $(td).css('background-color', 'sandybrown');
+                        } else {
+                            $(td).css('background-color', 'lightcoral');
+                        }
+                        $(td).text(cellData + '%');
+                    }
+                },
+                {
+                    width: '5%',
+                    targets: [15, 16],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData <= 10) {
+                            $(td).css('background-color', 'lightgreen');
+                        } else if (cellData > 10 && cellData <= 30) {
+                            $(td).css('background-color', 'sandybrown');
+                        } else {
+                            $(td).css('background-color', 'lightcoral');
+                        }
+                        $(td).text(cellData + 'ms');
+                    }
+                }
+            ],
+        });
+        toggle_disabled_excel_button()
+    })
+
+    $('#query-button').on('click', function () {
+        // Get selected endpoint and period values
+        var endpoint = $('#endpoint-select').val();
+        var period = $('#period-select').val();
+
+        // Make AJAX request
+        $.ajax({
+            url: '/call_report/query',
+            method: 'POST',
+            data: {
+                endpoint: endpoint,
+                period: period
+            },
+            success: function (response) {
+                // Handle successful response
+                console.log(response);
+
+                // Clear existing table
+                var table = $('#historic_calls_table').DataTable()
+                table.clear().draw()
+
+                // Preprocess the response to extract values and create an array of arrays
+                var dataArray = response.map(function (entry) {
+                    return [
+                        entry.endpoint,
+                        entry.region,
+                        entry.site,
+                        entry.ipAddr,
+                        entry.displayName,
+                        entry.callbackNumber,
+                        entry.remoteNumber,
+                        entry.startTime,
+                        entry.endTime,
+                        entry.duration,
+                        entry.disconnect_reason,
+                        entry.a_moss,
+                        entry.v_moss,
+                        entry.a_pkt_loss_max,
+                        entry.v_pkt_loss_max,
+                        entry.a_jit_max,
+                        entry.v_jit_max
+                    ];
+                });
+
+                // Add query entries
+                table.rows.add(dataArray).draw()
+
+                toggle_disabled_excel_button()
+            },
+            error: function (xhr, status, error) {
+                // Handle error
+                console.error(error);
+            }
+        });
+    })
+
+    $('#excel-export-btn').on('click', function () {
+        // Gather data from active calls
+        var data = [];
+        $('#historic_calls_table').DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
+            let endpoint = this.data()[0];
+            let region = this.data()[1];
+            let site = this.data()[2];
+            let ipAddr = this.data()[3];
+            let display_name = this.data()[4];
+            let callback_number = this.data()[5];
+            let remote_number = this.data()[6];
+            let start_time = this.data()[7];
+            let end_time = this.data()[8];
+            let duration = this.data()[9];
+            let disconnect_reason = this.data()[10];
+            let a_moss = this.data()[11];
+            let v_moss = this.data()[12];
+            let a_pkt_loss_max = this.data()[13];
+            let v_pkt_loss_max = this.data()[14];
+            let a_jit_max = this.data()[15];
+            let v_jit_max = this.data()[16];
+
+            data.push({
+                endpoint: endpoint,
+                region: region,
+                site: site,
+                ipAddr: ipAddr,
+                display_name: display_name,
+                callback_number: callback_number,
+                remote_number: remote_number,
+                start_time: start_time,
+                end_time: end_time,
+                duration: duration,
+                disconnect_reason: disconnect_reason,
+                a_moss_min: a_moss,
+                v_moss_min: v_moss,
+                a_pkt_loss_in: a_pkt_loss_max,
+                a_pkt_loss_out: v_pkt_loss_max,
+                v_pkt_loss_in: a_jit_max,
+                v_pkt_loss_out: v_jit_max
+            });
+        });
+
+        // Send data to the Flask route using AJAX
+        $.ajax({
+            url: '/download/excel',
+            type: 'POST',
+            data: {
+                download_type: "historic",
+                data: JSON.stringify(data)
+            },
+            xhrFields: {
+                responseType: 'blob' // Ensure response type is treated as binary data
+            },
+            success: function (response, status, xhr) {
+                // Extract filename from Content-Disposition header
+                var filename = "";
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create a temporary anchor element to trigger the download
+                var anchor = document.createElement('a');
+                var url = window.URL.createObjectURL(response);
+                anchor.href = url;
+                anchor.download = filename || 'historic_calls.xlsx'; // Use extracted filename or default name
+                document.body.appendChild(anchor);
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(anchor);
+            },
+            error: function (response) {
+                console.log('Unable to download Historic Calls Excel Document, got the following response:')
+                console.log(response)
+            }
+        });
+    })
+
+    function toggle_disabled_excel_button() {
+        var table = $('#historic_calls_table').DataTable()
+
+        // Check if DataTable has any data
+        if (table.rows().count() !== 0) {
+            // Enable the export button
+            $('#excel-export-btn').removeClass('disabled');
+        } else {
+            $('#excel-export-btn').addClass('disabled');
+        }
+    }
+</script>
+{%  endblock %}

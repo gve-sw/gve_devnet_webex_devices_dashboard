@@ -1,0 +1,269 @@
+{% extends "masterPage.html" %}
+
+{% block content %}
+
+<div class="container-fluid base-margin-top">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoint Details -
+                {{device_details.displayName}}</h5>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-3 panel panel--loose panel--raised">
+            <span><b>Endpoint:</b> <span
+                    style="background-color: {% if device_details.connectionStatus == 'Connected' %} lightgreen {% elif device_details.connectionStatus == 'Disconnected' %} lightcoral {% elif device_details.connectionStatus == 'Issues' %} sandybrown {% endif %}">{{device_details.displayName}}</span></span>
+        </div>
+        <div class="col-md-4 panel panel--loose panel--raised base-margin-left">
+            <span><b>Contact Information:</b> {{device_details.contactInformation}}</span>
+        </div>
+        <div class="col-md-4 panel panel--loose panel--raised qtr-margin-left">
+            <span><b>Local Number:</b> {{device_details.localNumber}}</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 panel panel--loose panel--raised base-margin-top">
+            <h5 class="text-size-16 text-left dbl-margin-bottom"><b>System Unit</b></h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--compressed table--striped" id="system_unit">
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Type:</th>
+                        <td class="text-small">{{device_details.systemUnit.type}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Product:</th>
+                        <td class="text-small">{{device_details.systemUnit.product}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">IP Addr:</th>
+                        <td class="text-small">{{device_details.systemUnit.ip}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">HW Mod Serial:</th>
+                        <td class="text-small">{{device_details.systemUnit.hw_mod_serial}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">HW Comp Level:</th>
+                        <td class="text-small">{{device_details.systemUnit.hw_comp_level}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Software Name:</th>
+                        <td class="text-small">{{device_details.systemUnit.sw_name}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">SW Version:</th>
+                        <td class="text-small">{{device_details.systemUnit.sw_ver}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">SW Release Date:</th>
+                        <td class="text-small">{{device_details.systemUnit.sw_release}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Boot Time:</th>
+                        <td class="text-small">{{device_details.systemUnit.boot_time}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Site:</th>
+                        <td class="text-small">{{device_details.systemUnit.site}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Region:</th>
+                        <td class="text-small">
+                            <div class="row">
+                                <div class="col-md-2" id="current_region">
+                                    {{device_details.region}}
+                                </div>
+                                <div class="col-md-1"></div>
+                                <div class="col-md-6">
+                                    <form id="regionForm">
+                                        <input type="hidden" id="deviceId" name="deviceId"
+                                               value="{{device_details.deviceId}}">
+                                        <input type="text" id="newRegion" name="newRegion" placeholder="" size="6">
+                                        <select id="existingRegions" name="existingRegions" style="width: 65px;">
+                                            <option value="">Select existing region</option>
+                                            {% for region in existing_regions %}
+                                            <option value="{{ region }}">{{ region }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit">Submit</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-8 panel panel--loose panel--raised base-margin-top base-margin-left">
+            <h5 class="text-size-16 text-left"><b>Active Calls</b></h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--wrapped table--striped" id="active_calls_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">ID</th>
+                        <th class="hidden-md-down">Display Name</th>
+                        <th class="hidden-md-down">Remote Number</th>
+                        <th class="hidden-md-down">Start Time</th>
+                        <th class="hidden-md-down">Dur</th>
+                        <th class="hidden-md-down">Type</th>
+                        <th class="hidden-md-down">Dir</th>
+                        <th class="hidden-md-down">Status</th>
+                        <th class="hidden-md-down">A MOS Min</th>
+                        <th class="hidden-md-down">V MOS Min</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for call in device_details.activeCalls %}
+                    <tr>
+                        <td class="hidden-md-down">{{ call.id }}</td>
+                        <td class="hidden-md-down">{{ call.displayName }}</td>
+                        <td class="hidden-md-down">{{ call.remoteNumber }}</td>
+                        <td class="hidden-md-down">{{ call.startTime }}</td>
+                        <td class="hidden-md-down">{{ call.duration }}</td>
+                        <td class="hidden-md-down">{{ call.type }}</td>
+                        <td class="hidden-md-down">{{ call.direction }}</td>
+                        <td class="hidden-md-down">{{ call.status }}</td>
+                        <td class="hidden-md-down">{{ call.a_mos }}</td>
+                        <td class="hidden-md-down">{{ call.v_mos }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 panel panel--loose panel--raised base-margin-top dbl-margin-bottom">
+            <h5 class="text-size-16 text-left dbl-margin-bottom"><b>Room Analytics</b></h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--compressed table--striped" id="analytics">
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">People Present:</th>
+                        <td class="text-small">{{device_details.roomAnalytics.people_present}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">People Count:</th>
+                        <td class="text-small">{{device_details.roomAnalytics.people_count}}</td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Mics Muted:</th>
+                        <td class="text-small"
+                            style="background-color: {% if device_details.roomAnalytics.mic_muted == 'Off' %} lightgreen {% else %} lightcoral {% endif %}">
+                            {{device_details.roomAnalytics.mic_muted}}
+                        </td>
+                    </tr>
+                    <tr class="hidden-md-down">
+                        <th class="text-small" style="background-color: darkgrey;">Speaker Volume:</th>
+                        <td class="text-small">{{device_details.roomAnalytics.speaker_volume}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-8 panel panel--loose panel--raised base-margin-top base-margin-left dbl-margin-bottom">
+            <h5 class="text-size-16 text-left"><b>Peripherals</b></h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--wrapped table--striped" id="peripherals_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">Name</th>
+                        <th class="hidden-md-down">HW Type</th>
+                        <th class="hidden-md-down">State</th>
+                        <th class="hidden-md-down">Serial</th>
+                        <th class="hidden-md-down">HW Info</th>
+                        <th class="hidden-md-down">SW Info</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for device in device_details.peripherals %}
+                    <tr>
+                        <td class="hidden-md-down">{{ device.name }}</td>
+                        <td class="hidden-md-down">{{ device.hw_type }}</td>
+                        <td class="hidden-md-down"
+                            style="background-color: {% if device.state == 'Connected' %} lightgreen {% else %} lightcoral {% endif %}">
+                            {{ device.state }}
+                        </td>
+                        <td class="hidden-md-down">{{ device.serial }}</td>
+                        <td class="hidden-md-down">{{ device.hw_info }}</td>
+                        <td class="hidden-md-down">{{ device.sw_info }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#active_calls_table').DataTable({
+            responsive: true, // Enable responsive behavior
+            columnDefs: [
+                {
+                    targets: [7],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData === "Connected") {
+                            $(td).css('background-color', 'lightgreen');
+                        } else {
+                            $(td).css('background-color', 'lightcoral');
+                        }
+                        $(td).text(cellData);
+                    }
+                },
+                {
+                    targets: [8, 9],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        if (cellData === 'N/A') {
+                            // If the value is 'N/A', just set the text and don't change the background color
+                            $(td).text(cellData)
+                        } else {
+                            // Proceed with the original logic for non-'N/A' values
+                            if (cellData >= 4.5) {
+                                $(td).css('background-color', 'lightgreen');
+                            } else if (cellData >= 3.5) {
+                                $(td).css('background-color', 'lightyellow');
+                            } else if (cellData >= 2.5) {
+                                $(td).css('background-color', 'sandybrown');
+                            } else {
+                                $(td).css('background-color', 'lightcoral');
+                            }
+                            // Ensure the value is a number before formatting, this avoids errors with 'N/A'
+                            if (!isNaN(parseFloat(cellData))) {
+                                $(td).text(parseFloat(cellData).toFixed(2));
+                            }
+                        }
+                    }
+                }
+            ]
+        });
+        $('#peripherals_table').DataTable({
+            responsive: true, // Enable responsive behavior
+            columnDefs: [
+                {width: '20%', targets: 0}
+            ]
+        });
+        $('#regionForm').submit(function (event) {
+            event.preventDefault(); // Prevent default form submission
+            var formData = $(this).serialize(); // Serialize form data
+            $.ajax({
+                type: 'POST',
+                url: '/update_region',
+                data: formData,
+                success: function (response) {
+                    // Handle success response
+                    console.log(response);
+                    // Update the displayed region on success
+                    $('#current_region').text(response.new_region);
+                },
+                error: function (error) {
+                    // Handle error response
+                    console.error('Error:', error);
+                }
+            });
+        });
+    })
+</script>
+
+{%  endblock %}

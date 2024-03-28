@@ -1,0 +1,86 @@
+{% extends "masterPage.html" %}
+
+{% block content %}
+<div class="container-fluid base-margin-top">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoints - Summary</h5>
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="panel panel--loose panel--raised">
+            <h5 class="text-size-16 text-left dbl-margin-bottom"><b>Device List</b></h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--wrapped table--striped" id="device_list_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">Endpoint</th>
+                        <th class="hidden-md-down">Email</th>
+                        <th class="hidden-md-down">Connected</th>
+                        <th class="hidden-md-down">Product</th>
+                        <th class="hidden-md-down">Serial</th>
+                        <th class="hidden-md-down">IP</th>
+                        <th class="hidden-md-down">MAC</th>
+                        <th class="hidden-md-down">Software</th>
+                        <th class="hidden-md-down">Mode</th>
+                        <th class="hidden-md-down">Region</th>
+                        <th class="hidden-md-down">Site</th>
+                        <th class="hidden-md-down">Room</th>
+                        <th class="hidden-md-down">Uptime</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td class="hidden-md-down"><a href="/device/details?deviceId={{device[0]}}">{{ device[1] }}</a>
+                        </td>
+                        <td class="hidden-md-down">{{ device[14] }}</td>
+                        <td class="hidden-md-down"
+                            style="background-color: {% if device[2] == 'Connected' %} lightgreen {% elif device[2] == 'Disconnected' %} lightcoral {% elif device[2] == 'Issues' %} sandybrown {% endif %}">
+                            {{ device[2] }}
+                        </td>
+                        <td class="hidden-md-down">{{ device[3] }}</td>
+                        <td class="hidden-md-down">{{ device[4] }}</td>
+                        <td class="hidden-md-down">{{ device[5] }}</td>
+                        <td class="hidden-md-down">{{ device[6] }}</td>
+                        <td class="hidden-md-down">{{ device[7] }}</td>
+                        <td class="hidden-md-down">{{ device[8] }}</td>
+                        <td class="hidden-md-down">{{ device[12] }}</td>
+                        <td class="hidden-md-down">{{ device[9] }}</td>
+                        <td class="hidden-md-down">{{ device[10] }}</td>
+                        <td class="hidden-md-down">{{ device[13] }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#device_list_table').DataTable({
+            responsive: true, // Enable responsive behavior
+            columnDefs: [
+                {targets: [0,1], width: "10%"},
+                {   targets: [7],
+                    createdCell: function (td, cellData, rowData, row, col) {
+                        // Directly applying the styles to the cell
+                        $(td).css({
+                            'max-width': '125px', // Adjust the max-width as needed
+                            'white-space': 'nowrap',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'cursor': 'pointer'
+                        });
+                        $(td).attr('title', cellData);
+                    }
+                }
+            ]
+        });
+    })
+</script>
+{%  endblock %}

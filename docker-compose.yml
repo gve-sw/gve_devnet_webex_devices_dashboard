@@ -1,0 +1,20 @@
+version: "3.5"
+
+services:
+  gve_devnet_webex_devices_dashboard:
+    image: ghcr.io/gve-sw/gve_devnet_webex_devices_dashboard:latest
+#    build: .
+    container_name: gve_devnet_webex_devices_dashboard
+    environment:
+      - WEBEX_CLIENT_ID=${WEBEX_CLIENT_ID}
+      - WEBEX_CLIENT_SECRET=${WEBEX_CLIENT_SECRET}
+      - SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}
+      - SERVICENOW_USERNAME=${SERVICENOW_USERNAME}
+      - SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./flask_app/config.py:/app/config.py
+      - ./flask_app/logs:/app/logs
+      - ./flask_app/db:/app/db
+    restart: "always"

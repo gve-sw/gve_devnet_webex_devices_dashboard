@@ -1,0 +1,65 @@
+{% extends "masterPage.html" %}
+
+{% block content %}
+<div class="container-fluid base-margin-top">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoints - Closed Incidents</h5>
+        </div>
+    </div>
+    <hr>
+    <div class="section">
+        <div class="panel panel--loose panel--raised">
+            <h5 class="text-size-16 text-left dbl-margin-bottom"><b>Incidents Closed in the Last {{hours}} Hours</b>
+            </h5>
+            <div class="responsive-table">
+                <table class="table table--lined table--striped" id="incident_table">
+                    <thead>
+                    <tr>
+                        <th class="hidden-md-down">Incident No</th>
+                        <th class="hidden-md-down">Endpoint</th>
+                        <th class="hidden-md-down">Severity</th>
+                        <th class="hidden-md-down">Description</th>
+                        <th class="hidden-md-down">Opened</th>
+                        <th class="hidden-md-down">Closed</th>
+                        <th class="hidden-md-down">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for incident in display_table %}
+                    <tr>
+                        <td class="hidden-md-down">{{ incident.incident_num }}</td>
+                        <td class="hidden-md-down">{{ incident.endpoint }}</td>
+                        <td class="hidden-md-down">{{ incident.severity }}</td>
+                        <td class="hidden-md-down truncate" title="{{ incident.description }}">{{ incident.description
+                            }}
+                        </td>
+                        <td class="hidden-md-down">{{ incident.opened_at }}</td>
+                        <td class="hidden-md-down">{{ incident.closed_at }}</td>
+                        <td class="hidden-md-down">{{ incident.status }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#incident_table').DataTable({
+            responsive: true, // Enable responsive behavior
+            // columnDefs: [
+            //     { width: "10%", targets: 0 },
+            //     { width: '10%', targets: 1 },
+            //     { width: '10%', targets: 2 },
+            //     { width: '10%', targets: 3 },
+            //     { width: '10%', targets: 4 },
+            //     { width: '50%', targets: 5 },
+            // ]
+        });
+    })
+</script>
+{%  endblock %}

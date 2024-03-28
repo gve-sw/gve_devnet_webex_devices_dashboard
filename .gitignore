@@ -1,0 +1,18 @@
+# Environment
+venv
+
+# Sensitive Files
+.env
+flask_app/config.py
+flask_app/tokens.json
+
+# DB
+flask_app/db/*.*
+
+# Log files
+flask_app/logs/*.*
+
+# IDE files
+.idea
+__pycache__
+.DS_Store

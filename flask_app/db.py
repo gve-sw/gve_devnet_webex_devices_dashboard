@@ -355,6 +355,6 @@ def close_connection(conn: sqlite3.Connection):
 if __name__ == "__main__":
     conn = create_connection(db_path)
     create_tables(conn)
-    pprint(f"Devices Table: {query_all_devices(conn, "*")}")
+    pprint(f"Devices Table: {query_all_devices(conn, '*')}")
     pprint(f"Call History Table: {query_all_call_history(conn)}")
     close_connection(conn)

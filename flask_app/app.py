@@ -156,8 +156,8 @@ def enrich_device_fields(device: dict) -> dict:
     # Get Device Location Name (if possible)
     if 'locationId' in device:
         location_details = device_api.get_location_details(device['locationId'])
-        device['site'] = location_details['name']
-        device['timeZone'] = location_details['timeZone']
+        device['site'] = location_details.get('name', 'Unknown')
+        device['timeZone'] = location_details.get('timeZone', 'N/A')
     else:
         device['site'] = 'Unknown'
         device['timeZone'] = 'N/A'
@@ -186,7 +186,7 @@ def enrich_device_fields(device: dict) -> dict:
 
             # Get mailbox info (if integration enabled and assigned)
             if 'calendar' in workspace_details and workspace_details['calendar']['type'] != 'none':
-                device['email'] = workspace_details['calendar']['emailAddress']
+                device['email'] = workspace_details['calendar'].get('emailAddress', "Unknown")
         else:
             device['room'] = ''
             device['email'] = ''

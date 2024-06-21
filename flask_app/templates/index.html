@@ -7,6 +7,15 @@
         <div class="col-md-8">
             <h5 class="display-5 text-center text-bold">Cisco Collaboration Endpoints - Summary</h5>
         </div>
+        <div class="col-md-2">
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div id="excel-export-btn" class="col-md-8 text-right" style="cursor: pointer;">
+                    <span class="text-size-14 text-success text-center">Excel Export</span>
+                    <span class="icon-file-excel-o text-success icon-size-24"></span>
+                </div>
+            </div>
+        </div>
     </div>
     <hr>
     <div class="section">
@@ -62,7 +71,7 @@
 
 <script>
     $(document).ready(function () {
-        $('#device_list_table').DataTable({
+        var table = $('#device_list_table').DataTable({
             responsive: true, // Enable responsive behavior
             columnDefs: [
                 {targets: [0,1], width: "10%"},
@@ -80,6 +89,93 @@
                     }
                 }
             ]
+        });
+
+        // Initially disable the export button
+        $('#excel-export-btn').addClass('disabled');
+
+        // Check if DataTable has any data
+        if (table.rows().count() !== 0) {
+            // Enable the export button
+            $('#excel-export-btn').removeClass('disabled');
+        }
+    })
+
+    $('#excel-export-btn').on('click', function () {
+        // Gather data from active calls
+        var data = [];
+        $('#device_list_table').DataTable().rows().every(function (rowIdx, tableLoop, rowLoop) {
+            // Extract endpoint name (remove anchor tags)
+            let raw_endpoint = this.node().cells[0];
+            let endpoint = $(raw_endpoint).find('a').html();
+
+            let email = this.data()[1];
+            let connected = this.data()[2];
+            let product = this.data()[3];
+            let serial = this.data()[4];
+            let ip = this.data()[5];
+            let mac = this.data()[6];
+            let software = this.data()[7];
+            let mode = this.data()[8];
+            let region = this.data()[9];
+            let site = this.data()[10];
+            let room = this.data()[11];
+            let uptime = this.data()[12];
+
+            data.push({
+                endpoint: endpoint,
+                email: email,
+                connected: connected,
+                product: product,
+                serial: serial,
+                ip: ip,
+                mac: mac,
+                software: software,
+                mode: mode,
+                region: region,
+                site: site,
+                room: room,
+                uptime: uptime
+            });
+        });
+
+        // Send data to the Flask route using AJAX
+        $.ajax({
+            url: '/download/excel',
+            type: 'POST',
+            data: {
+                download_type: "device",
+                data: JSON.stringify(data)
+            },
+            xhrFields: {
+                responseType: 'blob' // Ensure response type is treated as binary data
+            },
+            success: function (response, status, xhr) {
+                // Extract filename from Content-Disposition header
+                var filename = "";
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    var matches = filenameRegex.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+
+                // Create a temporary anchor element to trigger the download
+                var anchor = document.createElement('a');
+                var url = window.URL.createObjectURL(response);
+                anchor.href = url;
+                anchor.download = filename || 'device_list.xlsx'; // Use extracted filename or default name
+                document.body.appendChild(anchor);
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(anchor);
+            },
+            error: function (response) {
+                console.log('Unable to download Device List Excel Document, got the following response:')
+                console.log(response)
+            }
         });
     })
 </script>

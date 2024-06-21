@@ -770,6 +770,8 @@ def download_excel():
 
     if download_type == "active":
         filename = f"active_calls_{current_datetime}.xlsx"
+    elif download_type == "device":
+        filename = f"device_list_{current_datetime}.xlsx"
     else:
         filename = f"call_history_{current_datetime}.xlsx"
 
